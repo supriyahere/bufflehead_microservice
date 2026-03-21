@@ -1,0 +1,5 @@
+fastapi
+uvicorn
+google-cloud-bigquery
+jinja2
+python-multipart
