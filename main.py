@@ -52,7 +52,10 @@ def predict(
     )
     """
 
-    results = client.query(query).result()
+    try:
+        results = client.query(query).result()
+    except Exception as e:
+        return {"error": str(e)}
 
     prediction = None
     for row in results:
