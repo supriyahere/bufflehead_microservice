@@ -32,39 +32,40 @@ def predict(
     day: int = Form(...),
     avg_precipitation: float = Form(...)
 ):
-    query = f"""
-    SELECT *
-    FROM ML.PREDICT(
-      MODEL `{PROJECT_ID}.{DATASET}.{MODEL}`,
-      (
-        SELECT
-          '{locality}' AS locality,
-          DATE('{eventdate}') AS eventdate,
-          {month} AS month,
-          {winter_season} AS winter_season,
-          {day_of_year} AS day_of_year,
-          {avg_wind_speed} AS avg_wind_speed,
-          {year} AS year,
-          {avg_temp} AS avg_temp,
-          {day} AS day,
-          {avg_precipitation} AS avg_precipitation
-      )
-    )
-    """
-
     try:
+        query = f"""
+        SELECT *
+        FROM ML.PREDICT(
+          MODEL `{PROJECT_ID}.{DATASET}.{MODEL}`,
+          (
+            SELECT
+              '{locality}' AS locality,
+              DATE('{eventdate}') AS eventdate,
+              {month} AS month,
+              {winter_season} AS winter_season,
+              {day_of_year} AS day_of_year,
+              {avg_wind_speed} AS avg_wind_speed,
+              {year} AS year,
+              {avg_temp} AS avg_temp,
+              {day} AS day,
+              {avg_precipitation} AS avg_precipitation
+          )
+        )
+        """
+
         results = client.query(query).result()
+
+        prediction = None
+        for row in results:
+            prediction = row.predicted_individualcount
+
+        return templates.TemplateResponse(
+            "result.html",
+            {"request": request, "prediction": prediction}
+        )
+
     except Exception as e:
-        return {"error": str(e)}
-
-    prediction = None
-    for row in results:
-        prediction = row.predicted_individualcount
-
-    return templates.TemplateResponse(
-        "result.html",
-        {
-            "request": request,
-            "prediction": prediction
-        }
-    )
+        return templates.TemplateResponse(
+            "result.html",
+            {"request": request, "prediction": f"Error: {str(e)}"}
+        )
