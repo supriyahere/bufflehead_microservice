@@ -18,7 +18,6 @@ def home(request: Request):
     return templates.TemplateResponse("form.html", {"request": request})
 
 
-# change avg_wind_speed to string in form input
 @app.post("/predict", response_class=HTMLResponse)
 def predict(
     request: Request,
@@ -27,7 +26,7 @@ def predict(
     month: int = Form(...),
     winter_season: int = Form(...),
     day_of_year: int = Form(...),
-    avg_wind_speed: str = Form(...), 
+    avg_wind_speed: str = Form(...),   # STRING (as expected by model)
     year: int = Form(...),
     avg_temp: float = Form(...),
     day: int = Form(...),
@@ -45,7 +44,7 @@ def predict(
               {month} AS month,
               {winter_season} AS winter_season,
               {day_of_year} AS day_of_year,
-              '{avg_wind_speed}' AS avg_wind_speed, 
+              CAST('{avg_wind_speed}' AS STRING) AS avg_wind_speed,
               {year} AS year,
               {avg_temp} AS avg_temp,
               {day} AS day,
@@ -66,7 +65,4 @@ def predict(
         )
 
     except Exception as e:
-        return templates.TemplateResponse(
-            "result.html",
-            {"request": request, "prediction": f"Error: {str(e)}"}
-        )
+        return HTMLResponse(content=f"<h2>Error: {str(e)}</h2>")
