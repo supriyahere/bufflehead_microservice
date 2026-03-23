@@ -26,7 +26,7 @@ def predict(
     month: int = Form(...),
     winter_season: int = Form(...),
     day_of_year: int = Form(...),
-    avg_wind_speed: str = Form(...),   # STRING (as expected by model)
+    avg_wind_speed: str = Form(...),
     year: int = Form(...),
     avg_temp: float = Form(...),
     day: int = Form(...),
@@ -34,7 +34,7 @@ def predict(
 ):
     try:
         query = f"""
-        SELECT *
+        SELECT predicted_individualcount
         FROM ML.PREDICT(
           MODEL `{PROJECT_ID}.{DATASET}.{MODEL}`,
           (
@@ -44,20 +44,18 @@ def predict(
               {month} AS month,
               {winter_season} AS winter_season,
               {day_of_year} AS day_of_year,
-              CAST('{avg_wind_speed}' AS STRING) AS avg_wind_speed,
+              '{avg_wind_speed}' AS avg_wind_speed,
               {year} AS year,
               {avg_temp} AS avg_temp,
               {day} AS day,
               {avg_precipitation} AS avg_precipitation
           )
         )
+        LIMIT 1
         """
 
-        results = client.query(query).result()
-
-        prediction = None
-        for row in results:
-            prediction = row.predicted_individualcount
+        result = client.query(query).result()
+        prediction = list(result)[0]["predicted_individualcount"]
 
         return templates.TemplateResponse(
             "result.html",
